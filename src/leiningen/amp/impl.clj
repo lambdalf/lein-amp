@@ -41,9 +41,7 @@
         config             (io/file project-home "config")
         licenses           (io/file project-home "licenses")
         target             (io/file (:target-path project))
-        _                  (println "#### STEP 1: Construct uberjar...")
         uberjar-file       (io/file (uj/uberjar project))
-        _                  (println "#### uberjar =" uberjar-file)
         amp                (io/file target "amp/.")
         amp-lib            (io/file target "amp/lib/.")
         amp-config         (io/file target "amp/config/.")
@@ -53,15 +51,12 @@
                                     (or (get-in project [:amp-name])
                                         (str (:name project) "-" (:version project) ".amp")))]
 
-    (println "#### STEP 2: Create AMP directory structure...")
     (io/make-parents amp)
     (io/make-parents amp-lib)
 
-    (println "#### STEP 3: Populate AMP directory structure...")
     (if (.exists ^java.io.File module-properties)
       (io/copy module-properties (io/file amp (.getName ^java.io.File module-properties)))
-      (println "#### RUH ROH RAGGY : no module.properties!!!!1"))
-;      (throw (RuntimeException. "Module doesn't have a module.properties file, so it's invalid.")))    ;####TODO: Make this more pleasant
+      (throw (RuntimeException. "Project isn't valid - it doesn't have a module.properties file.")))   ;####TODO: Make this more pleasant
 
     (if (.exists ^java.io.File file-mappings)
       (io/copy file-mappings (io/file amp (.getName ^java.io.File file-mappings))))
@@ -87,9 +82,9 @@
       (do
         (fs/copy-dir licenses amp)))
 
-    (println "#### STEP 4: Create AMP..." amp-file)
     (zip-directory! amp-file amp)
-  ))
+
+    (println "Wrote" amp-file)))
 
 
 (defn deploy-amp!
