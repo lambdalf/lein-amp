@@ -46,7 +46,8 @@
     (println "#### STEP 3: Populate AMP directory structure...")
     (if (.exists ^java.io.File module-properties)
       (io/copy module-properties (io/file amp (.getName ^java.io.File module-properties)))
-      (throw (RuntimeException. "Module doesn't have a module.properties file.")))    ;####TODO: Make this more pleasant
+      (println "#### RUH ROH RAGGY : no module.properties!!!!1"))
+;      (throw (RuntimeException. "Module doesn't have a module.properties file, so it's invalid.")))    ;####TODO: Make this more pleasant
 
     (if (.exists ^java.io.File file-mappings)
       (io/copy file-mappings (io/file amp (.getName ^java.io.File file-mappings))))
