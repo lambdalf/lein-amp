@@ -10,16 +10,16 @@ requires the ability for leiningen to emit AMP Files.
 ## Installation
 
 lein-amp-plugin is (NOT YET!) available as a Maven artifact from
-[Clojars](https://clojars.org/org.clojars.pmonks/lein-amp-plugin).
+[Clojars](https://clojars.org/org.clojars.pmonks/lein-amp).
 Plonk the following in your project.clj :plugins, `lein deps` and you should be good to go:
 
 ```clojure
-[org.clojars.pmonks/lein-amp-plugin "#.#.#"]
+[org.clojars.pmonks/lein-amp "#.#.#"]
 ```
 
 The latest version is:
 
-[![version](https://clojars.org/org.clojars.pmonks/lein-amp-plugin/latest-version.svg)](https://clojars.org/org.clojars.pmonks/lein-amp-plugin)
+[![version](https://clojars.org/org.clojars.pmonks/lein-amp/latest-version.svg)](https://clojars.org/org.clojars.pmonks/lein-amp)
 
 ## Usage
 
@@ -29,9 +29,9 @@ $ lein amp
 
 ## Developer Information
 
-[GitHub project](https://github.com/pmonks/lein-amp-plugin)
+[GitHub project](https://github.com/pmonks/lein-amp)
 
-[Bug Tracker](https://github.com/pmonks/lein-amp-plugin/issues)
+[Bug Tracker](https://github.com/pmonks/lein-amp/issues)
 
 [![endorse](https://api.coderwall.com/pmonks/endorsecount.png)](https://coderwall.com/pmonks)
 
