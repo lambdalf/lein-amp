@@ -1,4 +1,4 @@
-# lein-amp-plugin
+# lein-amp
 A leiningen plugin for generating Alfresco Module Package (AMP) files.
 
 What is it useful for?
