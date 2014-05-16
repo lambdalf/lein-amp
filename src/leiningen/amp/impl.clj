@@ -50,41 +50,44 @@
         amp-file           (io/file target
                                     (or (get-in project [:amp-name])
                                         (str (:name project) "-" (:version project) ".amp")))]
-
+    ; Make some directories
     (io/make-parents amp)
     (io/make-parents amp-lib)
 
+    ; Copy module.properties, blowing up if it doesn't exist
     (if (.exists ^java.io.File module-properties)
       (io/copy module-properties (io/file amp (.getName ^java.io.File module-properties)))
+      ;(println "################### ROT ROH!!!"))
       (throw (RuntimeException. "Project isn't valid - it doesn't have a module.properties file.")))   ;####TODO: Make this more pleasant
 
+    ; Copy file-mapping.properties
     (if (.exists ^java.io.File file-mappings)
       (io/copy file-mappings (io/file amp (.getName ^java.io.File file-mappings))))
 
+    ; Copy the uberjar
     (if (.exists ^java.io.File uberjar-file)
       (io/copy uberjar-file (io/file amp-lib (.getName ^java.io.File uberjar-file))))
 
+    ; Copy all web resources
     (if (.exists ^java.io.File web-resources)
       (do
         (fs/copy-dir web-resources amp)
         (.renameTo ^java.io.File (io/file target "amp/web-resources") amp-web)))
 
-    (if (.exists ^java.io.File config)
-      (do
-        (fs/copy-dir config amp)
-        (.renameTo ^java.io.File (io/file target "amp/config") amp-config)))
-
+    ; Copy all "config" files
     (if (.exists ^java.io.File config)
       (do
         (fs/copy-dir config amp)))
 
+    ; Copy all licenses
     (if (.exists ^java.io.File licenses)
       (do
         (fs/copy-dir licenses amp)))
 
+    ; Zip everything up into an AMP
     (zip-directory! amp-file amp)
 
-    (println "Wrote" amp-file)))
+    (println "Created" (str amp-file))))
 
 
 (defn deploy-amp!
