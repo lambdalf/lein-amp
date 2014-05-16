@@ -15,22 +15,25 @@
 
 (defn package-amp!
   [project args]
-  (let [target   (io/file (:target-path project))
-        amp-file (io/file target
-                          (or (get-in project [:amp :name])
-                              (str (:name project) "-" (:version project) ".amp")))]
-    ; Step 1: construct a standard uberjar
-    (println "Constructing uberjar...")
-    (uj/uberjar project)
+  (let [target       (io/file (:target-path project))
+        amp-file     (io/file target
+                              (or (get-in project [:amp :name])
+                                  (str (:name project) "-" (:version project) ".amp")))
+        _            (println "#### STEP 1: Construct uberjar...")
+        uberjar-file (uj/uberjar project)
+        _            (println "#### uberjar =" uberjar-file)]
 
-    ; Step 2: construct AMP structure on disk
-    (println "#### creating AMP directory structure")
+    (println "#### STEP 2: Create AMP directory structure...")
+    (io/make-parents (io/file target "amp/config/."))   ; Note: the final "." is needed as make-parents doesn't create the final path element as a directory
+    (io/make-parents (io/file target "amp/lib/."))
+    (io/make-parents (io/file target "amp/licenses/."))
+    (io/make-parents (io/file target "amp/web/."))
 
-    ; Step 3: populate AMP structure
-    (println "#### populating AMP directory structure")
+    (println "#### STEP 3: Populate AMP directory structure...")
+    ;####TODO!!!!
 
-    ; Step 4: zip AMP structure up into an AMP file
-    (println "#### creating AMP" (.getName ^java.io.File amp-file))
+    (println "#### STEP 4: Create AMP..." amp-file)
+    ;####TODO!!!!
   ))
 
 
