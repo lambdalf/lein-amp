@@ -10,7 +10,8 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp.impl
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io   :as io]
+            [leiningen.uberjar :as uj]))
 
 (defn package-amp!
   [project args]
@@ -18,8 +19,18 @@
         amp-file (io/file target
                           (or (get-in project [:amp :name])
                               (str (:name project) "-" (:version project) ".amp")))]
-    (println "#### packaging AMP" (.getName ^java.io.File amp-file))
+    ; Step 1: construct a standard uberjar
+    (println "Constructing uberjar...")
+    (uj/uberjar project)
 
+    ; Step 2: construct AMP structure on disk
+    (println "#### creating AMP directory structure")
+
+    ; Step 3: populate AMP structure
+    (println "#### populating AMP directory structure")
+
+    ; Step 4: zip AMP structure up into an AMP file
+    (println "#### creating AMP" (.getName ^java.io.File amp-file))
   ))
 
 
