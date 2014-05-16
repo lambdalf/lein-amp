@@ -11,37 +11,51 @@
 
 (ns leiningen.amp.impl
   (:require [clojure.java.io   :as io]
-            [leiningen.uberjar :as uj]))
+            [leiningen.uberjar :as uj]
+            [me.raynes.fs      :as fs]))
 
-(def ^:private default-web-resources "web-resources")
-(def ^:private default-amp-resources "amp-resources")
+(defn- zip-directory!
+  "Recursively compress all files in 'directory' into 'zip-file'."
+  [zip-file directory]
+  (let [files            (file-seq (io/file directory))
+        directory-length (inc (.length (str directory)))]
+    (if-not (empty? files)
+      (with-open [zip-stream-out (java.util.zip.ZipOutputStream. (io/output-stream zip-file))]
+        (doseq [file (rest files)]  ; Discard the first file - it's the directory itself
+          (.putNextEntry zip-stream-out
+                         (java.util.zip.ZipEntry. (.substring (.getPath ^java.io.File file)
+                                                              directory-length)))
+          (if (.isFile ^java.io.File file)
+            (with-open [file-stream-in (io/input-stream file)]
+              (io/copy file-stream-in zip-stream-out)))
+          (.closeEntry zip-stream-out)))))
+  nil)
+
 
 (defn package-amp!
   [project args]
   (let [project-home       (io/file (:root project))
-        web-resources      (io/file project-home (:web-resource-path project default-web-resources))
-        amp-resources-name (:amp-resource-path project default-amp-resources)
-        module-properties  (io/file project-home (str amp-resources-name "/module.properties"))
-        file-mappings      (io/file project-home (str amp-resources-name "/file-mapping.properties"))
+        web-resources      (io/file project-home "web-resources")
+        module-properties  (io/file project-home "amp-resources/module.properties")
+        file-mappings      (io/file project-home "amp-resources/file-mapping.properties")
+        config             (io/file project-home "config")
+        licenses           (io/file project-home "licenses")
         target             (io/file (:target-path project))
-        amp-file           (io/file target
-                                    (or (get-in project [:amp :name])
-                                        (str (:name project) "-" (:version project) ".amp")))
         _                  (println "#### STEP 1: Construct uberjar...")
         uberjar-file       (io/file (uj/uberjar project))
         _                  (println "#### uberjar =" uberjar-file)
         amp                (io/file target "amp/.")
-        amp-config         (io/file target "amp/config/.")
         amp-lib            (io/file target "amp/lib/.")
+        amp-config         (io/file target "amp/config/.")
         amp-licenses       (io/file target "amp/licenses/.")
-        amp-web            (io/file target "amp/web/.")]
+        amp-web            (io/file target "amp/web/.")
+        amp-file           (io/file target
+                                    (or (get-in project [:amp-name])
+                                        (str (:name project) "-" (:version project) ".amp")))]
 
     (println "#### STEP 2: Create AMP directory structure...")
     (io/make-parents amp)
-    (io/make-parents amp-config)
     (io/make-parents amp-lib)
-    (io/make-parents amp-licenses)
-    (io/make-parents amp-web)
 
     (println "#### STEP 3: Populate AMP directory structure...")
     (if (.exists ^java.io.File module-properties)
@@ -55,12 +69,27 @@
     (if (.exists ^java.io.File uberjar-file)
       (io/copy uberjar-file (io/file amp-lib (.getName ^java.io.File uberjar-file))))
 
-    ;####TODO!!!!
+    (if (.exists ^java.io.File web-resources)
+      (do
+        (fs/copy-dir web-resources amp)
+        (.renameTo ^java.io.File (io/file target "amp/web-resources") amp-web)))
+
+    (if (.exists ^java.io.File config)
+      (do
+        (fs/copy-dir config amp)
+        (.renameTo ^java.io.File (io/file target "amp/config") amp-config)))
+
+    (if (.exists ^java.io.File config)
+      (do
+        (fs/copy-dir config amp)))
+
+    (if (.exists ^java.io.File licenses)
+      (do
+        (fs/copy-dir licenses amp)))
 
     (println "#### STEP 4: Create AMP..." amp-file)
-    ;####TODO!!!!
+    (zip-directory! amp-file amp)
   ))
-
 
 
 (defn deploy-amp!

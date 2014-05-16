@@ -16,5 +16,6 @@
                      :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :min-lein-version "2.0.0"
   :dependencies [
+                  [me.raynes/fs "1.4.5"]
                 ]
   :eval-in-leiningen true)
