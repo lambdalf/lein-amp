@@ -22,13 +22,13 @@
     (if-not (empty? files)
       (with-open [zip-stream-out (java.util.zip.ZipOutputStream. (io/output-stream zip-file))]
         (doseq [file (rest files)]  ; Discard the first file - it's the directory itself
-          (.putNextEntry zip-stream-out
-                         (java.util.zip.ZipEntry. (.substring (.getPath ^java.io.File file)
-                                                              directory-length)))
-          (if (.isFile ^java.io.File file)
-            (with-open [file-stream-in (io/input-stream file)]
-              (io/copy file-stream-in zip-stream-out)))
-          (.closeEntry zip-stream-out)))))
+          (let [entry-name (str (.substring (.getPath ^java.io.File file)
+                                            directory-length) (if (.isDirectory ^java.io.File file) "/"))]
+            (.putNextEntry zip-stream-out (java.util.zip.ZipEntry. entry-name))
+            (if (.isFile ^java.io.File file)
+              (with-open [file-stream-in (io/input-stream file)]
+                (io/copy file-stream-in zip-stream-out)))
+            (.closeEntry zip-stream-out))))))
   nil)
 
 (defn- mkdir-p
