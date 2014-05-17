@@ -60,7 +60,7 @@
     ; Copy module.properties, blowing up if it doesn't exist
     (if (.exists ^java.io.File module-properties)
       (io/copy module-properties (io/file amp (.getName ^java.io.File module-properties)))
-      (throw (RuntimeException. "Project isn't valid - it doesn't have a module.properties file.")))   ;####TODO: Make this more pleasant
+      (throw (RuntimeException. (str "Project isn't a valid AMP - " module-properties " is missing."))))
 
     ; Copy file-mapping.properties
     (if (.exists ^java.io.File file-mappings)

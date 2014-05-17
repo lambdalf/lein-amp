@@ -10,7 +10,8 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp
-  (:require [leiningen.amp.impl :refer [package-amp! deploy-amp!]]))
+  (:require [clojure.string     :as s]
+            [leiningen.amp.impl :refer [package-amp! deploy-amp!]]))
 
 (def ^:private dispatch-table
   { "package" package-amp!
@@ -26,12 +27,12 @@
 
    Tasks:
 
-     package              Compile and package the AMP file.
-     deploy               Deploy the AMP file to an Alfresco server.
+     package    Compile and package the AMP file.
+     deploy     Deploy the AMP file to the specified Alfresco installation (NOT YET IMPLEMENTED).
 
    Commandline Options:
 
-     ####TODO - FIX THIS
+     <none>
   "
   [project & args]
   (let [^String t (when-let [^String t (first args)]
@@ -40,4 +41,5 @@
         args      (if run-task! (rest args) args)]
     (if run-task!
       (run-task! project args)
-      (println "Unknown task" (if (nil? t) "<no task specified>" t)))))
+      (println (if (nil? t) "No task specified" (str "Unknown task: " t))
+               "\nValid tasks are:" (s/join ", " (keys dispatch-table))))))
