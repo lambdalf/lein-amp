@@ -4,11 +4,12 @@ See http://wiki.alfresco.com/wiki/AMP_Files for more details on the AMP file for
 See http://wiki.alfresco.com/wiki/Module_Management_Tool for details on how to deploy AMP files to an Alfresco installation.
 
 Also see https://github.com/mstang/alfresco-amp-template for a `lein new` template that will create a skeleton project of this type.
+It is highly recommended that you generate new AMP projects using this template.
 
 What is it useful for?
 
 AMPs are the standard for deploying extensions to the [open source Alfresco content management system](http://www.alfresco.org/).
-Being able to develop such extensions in Clojure, therefore, requires the ability for leiningen to emit AMP Files.  This plugin adds
+Being able to develop such extensions in Clojure, therefore, requires the ability for leiningen to emit AMP Files - this plugin adds
 that capability.
 
 ## Installation
@@ -17,44 +18,25 @@ lein-amp is available as a Maven artifact from [Clojars](https://clojars.org/org
 Plonk the following in your project.clj, `lein deps` and you should be good to go:
 
 ```clojure
-  :profiles {:dev      { :plugins [[lein-amp "0.1.0-SNAPSHOT"]] }
+  :profiles {:dev      { :plugins [[lein-amp "#.#.#"]] }
              :provided { :dependencies [
                                          [org.clojure/clojure         "1.6.0"          :scope "runtime"]
 ;                                         [org.clojars.pmonks/lambdalf "2.0.0-SNAPSHOT" :scope "runtime"]  ; SOON - NOT YET DEPLOYED TO CLOJARS!
                                        ]}
 ```
 
-## Usage:
-```shell
-$ lein amp package [<options>]
-$ lein amp deploy [<options>] [<path-to-alfresco>]   # Not implemented yet!
-```
-
-####TODO
-####TODO
-####TODO: FINISH THIS OFF!!!!!!!!!!
-####TODO
-####TODO
-
-   Tasks:
-
-     package    Compile and package the AMP file.
-     deploy     Deploy the AMP file to the specified Alfresco installation (NOT YET IMPLEMENTED).
-
-   Commandline Options:
-
-     <none>
-
-
 The latest version is:
 
 [![version](https://clojars.org/org.clojars.pmonks/lein-amp/latest-version.svg)](https://clojars.org/org.clojars.pmonks/lein-amp)
 
-## Usage
-
+## Usage:
 ```shell
-$ lein amp
+$ lein amp package
+$ lein amp deploy [<path-to-alfresco>]   # Not implemented yet!
 ```
+
+The `package` task builds an AMP file from your project.
+The `deploy` task (not yet implemented) will deploy that AMP to an Alfresco installation.
 
 ## Developer Information
 
