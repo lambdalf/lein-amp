@@ -27,7 +27,7 @@ Plonk the following in your project.clj, `lein deps` and you should be good to g
 
 The latest version is:
 
-[![version](https://clojars.org/org.clojars.pmonks/lein-amp/latest-version.svg)](https://clojars.org/org.clojars.pmonks/lein-amp)
+[![version](https://clojars.org/lein-amp/latest-version.svg)](https://clojars.org/lein-amp)
 
 ## Usage:
 ```shell
