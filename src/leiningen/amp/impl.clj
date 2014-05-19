@@ -20,30 +20,6 @@
   [m f]
   (reduce (fn [altered-map [k v]] (assoc altered-map k (f v))) {} m))
 
-(defn- replace-parameters
-  [project value]
-  (s/replace
-    (s/replace
-      (s/replace
-        value
-        "${project.name}" (s/replace (:name project) "/" "."))
-      "${project.version}" (:version project))
-    "${project.description}" (:description project)))
-
-(defn- read-module-properties
-  [project module-properties-file]
-  (let [raw-props (java.util.Properties.)
-        _         (with-open [input-stream (io/input-stream module-properties-file)]
-                    (.load raw-props input-stream))]
-    (map-function-on-map-vals raw-props #(replace-parameters project %))))
-
-(defn- write-module-properties!
-  [file module-properties]
-  (let [props (java.util.Properties.)
-        _     (.putAll props module-properties)
-        _     (.store props (io/output-stream file) " !!!! DO NOT EDIT -- AUTO-GENERATED FILE -- DO NOT EDIT !!!!")]
-    nil))
-
 (defn- fexists
   [file]
   (.exists ^java.io.File file))
@@ -54,7 +30,7 @@
 
 (defn- mkdir-p
   [directory]
-  (io/make-parents (io/file directory ".")))   ; make-parents won't create the last path element of the file
+  (io/make-parents (io/file directory ".")))   ; make-parents won't create the last path element of the file passed to it
 
 (defn- zip-directory!
   "Recursively compress all files in 'directory' into 'zip-file'."
@@ -73,6 +49,57 @@
             (.closeEntry zip-stream-out))))))
   nil)
 
+(defn- fix-snapshot-version
+  "This method converts SNAPSHOT version numbers into something Alfresco can support. It does this by
+  decrementing the last non-zero version number element by 1 and appending a 999 version component on
+  the end.  It also always returns a version number with at least version components."
+  [version]
+  (if (.endsWith ^String version "-SNAPSHOT")
+    (let [non-snapshot-version      (.substring ^String version 0 (- (.length ^String version) (.length "-SNAPSHOT")))
+          version-number-components (map #(Integer/parseInt %) (s/split non-snapshot-version #"\."))
+          version-number-components (drop-while zero? (reverse version-number-components))
+          _                         (if (empty? version-number-components) (throw (RuntimeException. (str "Invalid version number: " version))))
+          version-number-components (reverse (concat [999 (dec (first version-number-components))] (rest version-number-components)))
+          version-number-components (if (= (count version-number-components) 1)
+                                      (concat version-number-components [999 999])
+                                      (if (= (count version-number-components) 2)
+                                        (concat version-number-components [999])
+                                        version-number-components))]
+      (s/join "." version-number-components))
+    version))
+
+(defn- replace-parameters
+  [project value]
+  (s/replace
+    (s/replace
+      (s/replace
+        value
+        "${project.name}" (str (if (nil? (:group project)) "" (str (:group project) "."))
+                               (:name project)))
+      "${project.version}" (fix-snapshot-version (:version project)))
+    "${project.description}" (:description project)))
+
+(defn- read-module-properties
+  [project module-properties-file]
+  (let [raw-props (java.util.Properties.)
+        _         (with-open [input-stream (io/input-stream module-properties-file)]
+                    (.load raw-props input-stream))]
+    (map-function-on-map-vals raw-props #(replace-parameters project %))))
+
+(defn- write-module-properties!
+  [file module-properties]
+  (doto (java.util.Properties.)
+    (.putAll module-properties)
+    (.store (io/output-stream file) " !!!! DO NOT EDIT -- AUTO-GENERATED FILE -- DO NOT EDIT !!!!"))
+  nil)
+
+(defn- rewrite-module-context!
+  [module-context-file module-id]
+  (let [module-context-content (slurp module-context-file)
+        rewritten-content      (s/replace module-context-content "${project.moduleId}" module-id)]
+    (spit module-context-file rewritten-content))
+  nil)
+
 (defn package-amp!
   [project args]
   (let [project-home           (io/file (:root project))
@@ -81,6 +108,7 @@
         _                      (if (not (fexists module-properties-file))
                                  (throw (RuntimeException. (str "Invalid AMP project - " module-properties-file " is missing."))))
         module-properties      (read-module-properties project module-properties-file)
+        _                      (println module-properties)
         module-id              (get module-properties "module.id")
         module-version         (get module-properties "module.version")
 
@@ -96,14 +124,16 @@
 
         ; Target paths (where the AMP gets constructs)
         target                 (io/file (:target-path project))
-        tgt-amp                (io/file target     "amp")
-        tgt-module-properties  (io/file tgt-amp    "module.properties")
-        tgt-file-mapping       (io/file tgt-amp    "file-mapping.properties")
-        tgt-config             (io/file tgt-amp    "config")
-        tgt-lib                (io/file tgt-amp    "lib")
-        tgt-licenses           (io/file tgt-amp    "licenses")
-        tgt-module             (io/file tgt-config module-id)
-        tgt-web                (io/file tgt-amp    "web")
+        tgt-amp                (io/file target              "amp")
+        tgt-module-properties  (io/file tgt-amp             "module.properties")
+        tgt-file-mapping       (io/file tgt-amp             "file-mapping.properties")
+        tgt-config             (io/file tgt-amp             "config")
+        tgt-lib                (io/file tgt-amp             "lib")
+        tgt-licenses           (io/file tgt-amp             "licenses")
+        tgt-alfresco-module    (io/file tgt-config          "alfresco/module")
+        tgt-module             (io/file tgt-alfresco-module module-id)
+        tgt-module-context     (io/file tgt-module          "module-context.xml")
+        tgt-web                (io/file tgt-amp             "web")
 
         ; Output AMP file
         tgt-amp-file           (io/file target
@@ -134,8 +164,12 @@
     ; ${AMP}/module/ - note: this one is a bit unusual as it gets merged into ${AMP}/config...
     (if (fexists src-module)
       (do
-        (fs/copy-dir src-module tgt-config)
-        (.renameTo (io/file tgt-config (fname src-module)) tgt-module)))
+        (mkdir-p tgt-alfresco-module)
+        (fs/copy-dir src-module tgt-alfresco-module)
+        (.renameTo (io/file tgt-alfresco-module (fname src-module)) tgt-module)))
+
+    (if (fexists tgt-module-context)
+      (rewrite-module-context! tgt-module-context module-id))
 
     ; ${AMP}/web/
     (if (fexists src-web)
