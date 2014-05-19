@@ -177,7 +177,7 @@
     ; Now zip the AMP
     (zip-directory! tgt-amp-file tgt-amp)
 
-    (println "Created module" module-id "version" module-version "in" (str tgt-amp-file))))
+    (println "Created AMP" module-id "version" module-version "in" (str tgt-amp-file))))
 
 
 (defn deploy-amp!
