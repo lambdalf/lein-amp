@@ -19,7 +19,7 @@
 (defn- map-function-on-map-vals
   "From http://stackoverflow.com/questions/1676891/mapping-a-function-on-the-values-of-a-map-in-clojure"
   [m f]
-  (reduce (fn [altered-map [k v]] (assoc altered-map k (f v))) {} m))
+  (into {} (for [[k v] m] [k (f v)])))
 
 (defn- fexists
   [file]
