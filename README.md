@@ -1,33 +1,24 @@
 # lein-amp
-Generates an Alfresco Module Package (AMP) file from your project.
-See http://wiki.alfresco.com/wiki/AMP_Files for more details on the AMP file format.
-See http://wiki.alfresco.com/wiki/Module_Management_Tool for details on how to deploy AMP files to an Alfresco installation.
-
-Also see https://github.com/mstang/alfresco-amp-template for a `lein new` template that will create a skeleton project of this type.
-It is highly recommended that you generate new AMP projects using this template.
+Generates an [Alfresco Module Package (AMP) file](http://wiki.alfresco.com/wiki/AMP_Files) from your project, which
+can be deployed to an Alfresco installation using the
+[Module Management Tool](http://wiki.alfresco.com/wiki/Module_Management_Tool).
 
 What is it useful for?
 
-AMPs are the standard for deploying extensions to the [open source Alfresco content management system](http://www.alfresco.org/).
+AMPs are the standard way to deploy extensions to the [open source Alfresco content management system](http://www.alfresco.org/).
 Being able to develop such extensions in Clojure, therefore, requires the ability for leiningen to emit AMP Files - this plugin adds
 that capability.
 
 ## Installation
 
-lein-amp is available as a Maven artifact from [Clojars](https://clojars.org/org.clojars.pmonks/lein-amp).
-Plonk the following in your project.clj, `lein deps` and you should be good to go:
+It is highly recommended that you generate new AMP projects using the
+[`lein new` AMP template](https://github.com/mstang/alfresco-amp-template). Amongst other things, this will automatically add
+the lein-amp plugin to the new project's dependencies.
 
-```clojure
-  :profiles {:dev      { :plugins [[lein-amp "#.#.#"]] }
-             :provided { :dependencies [
-                                         [org.clojure/clojure         "1.6.0"          :scope "runtime"]
-;                                         [org.clojars.pmonks/lambdalf "2.0.0-SNAPSHOT" :scope "runtime"]  ; SOON - NOT YET DEPLOYED TO CLOJARS!
-                                       ]}
+```shell
+$ lein new amp <projectName>
+$ cd <projectName>
 ```
-
-The latest version is:
-
-[![version](https://clojars.org/lein-amp/latest-version.svg)](https://clojars.org/lein-amp)
 
 ## Usage:
 ```shell
