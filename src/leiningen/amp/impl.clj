@@ -74,9 +74,11 @@
   (s/replace
     (s/replace
       (s/replace
-        value
-        "${project.name}" (str (if (nil? (:group project)) "" (str (:group project) "."))
-                               (:name project)))
+        (s/replace
+          value
+          "${project.name}" (str (if (nil? (:group project)) "" (str (:group project) "."))
+                                 (:name project)))
+        "${project.title}" (:title project))
       "${project.version}" (fix-snapshot-version (:version project)))
     "${project.description}" (:description project)))
 
