@@ -10,10 +10,11 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp.impl
-  (:require [clojure.string    :as s]
-            [clojure.java.io   :as io]
-            [leiningen.uberjar :as uj]
-            [me.raynes.fs      :as fs]))
+  (:require [clojure.string      :as s]
+            [clojure.java.io     :as io]
+            [leiningen.uberjar   :as uj]
+            [me.raynes.fs        :as fs]
+            [leiningen.core.main :as main]))
 
 (defn- map-function-on-map-vals
   "From http://stackoverflow.com/questions/1676891/mapping-a-function-on-the-values-of-a-map-in-clojure"
@@ -106,7 +107,7 @@
         src-amp                (io/file project-home "amp")
         module-properties-file (io/file src-amp "module.properties")
         _                      (if (not (fexists module-properties-file))
-                                 (throw (RuntimeException. (str "Invalid AMP project - " module-properties-file " is missing."))))
+                                 (main/abort (str "Invalid AMP project - " module-properties-file " is missing.")))
         module-properties      (read-module-properties project module-properties-file)
         module-id              (get module-properties "module.id")
         module-version         (get module-properties "module.version")
@@ -177,10 +178,10 @@
     ; Now zip the AMP
     (zip-directory! tgt-amp-file tgt-amp)
 
-    (println "Created AMP" module-id "version" module-version "in" (str tgt-amp-file))))
+    (main/info (str "Created AMP " module-id " v" module-version " in " (str tgt-amp-file)))))
 
 
 (defn deploy-amp!
   [project args]
-  (comment "####TODO: NOT YET IMPLEMENTED"))
+  (main/abort "AMP deployment is not yet implemented. Sorry!"))
 
