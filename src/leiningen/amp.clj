@@ -19,6 +19,12 @@
 
 (defn amp
   "Generate an Alfresco Module Package (AMP) file from your project.
+   See http://wiki.alfresco.com/wiki/AMP_Files for more details on the AMP
+   file format. See http://wiki.alfresco.com/wiki/Module_Management_Tool
+   for details on how to deploy AMP files to an Alfresco installation.
+
+   To create an empty project compatible with this plugin, please use
+   the 'amp' lein-new template (see https://github.com/mstang/alfresco-amp-template).
 
    Usage:
 
