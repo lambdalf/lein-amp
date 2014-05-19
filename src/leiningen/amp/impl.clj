@@ -108,7 +108,6 @@
         _                      (if (not (fexists module-properties-file))
                                  (throw (RuntimeException. (str "Invalid AMP project - " module-properties-file " is missing."))))
         module-properties      (read-module-properties project module-properties-file)
-        _                      (println module-properties)
         module-id              (get module-properties "module.id")
         module-version         (get module-properties "module.version")
 
