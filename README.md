@@ -18,6 +18,7 @@ the lein-amp plugin to the new project's dependencies.
 ```shell
 $ lein new amp <projectName>
 $ cd <projectName>
+$ lein deps
 ```
 
 ## Usage:
