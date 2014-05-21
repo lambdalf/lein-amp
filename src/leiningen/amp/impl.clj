@@ -51,9 +51,9 @@
   nil)
 
 (defn- fix-snapshot-version
-  "This method converts SNAPSHOT version numbers into something Alfresco can support. It does this by
+  "This method converts SNAPSHOT version numbers into something MMT can support. It does this by
   decrementing the last non-zero version number element by 1 and appending a 999 version component on
-  the end.  It also always returns a version number with at least version components."
+  the end.  It also always returns a version number with at least 3 version components."
   [version]
   (if (.endsWith ^String version "-SNAPSHOT")
     (let [non-snapshot-version      (.substring ^String version 0 (- (.length ^String version) (.length "-SNAPSHOT")))
