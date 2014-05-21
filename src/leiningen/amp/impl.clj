@@ -59,13 +59,11 @@
     (let [non-snapshot-version      (.substring ^String version 0 (- (.length ^String version) (.length "-SNAPSHOT")))
           version-number-components (map #(Integer/parseInt %) (s/split non-snapshot-version #"\."))
           version-number-components (drop-while zero? (reverse version-number-components))
-          _                         (if (empty? version-number-components) (throw (RuntimeException. (str "Invalid version number: " version))))
+          _                         (if (empty? version-number-components) (main/abort (str "Invalid project version number: " version)))
           version-number-components (reverse (concat [999 (dec (first version-number-components))] (rest version-number-components)))
-          version-number-components (if (= (count version-number-components) 1)
-                                      (concat version-number-components [999 999])
-                                      (if (= (count version-number-components) 2)
-                                        (concat version-number-components [999])
-                                        version-number-components))]
+          version-number-components (if (= (count version-number-components) 2)
+                                      (concat version-number-components [999])
+                                      version-number-components)]
       (s/join "." version-number-components))
     version))
 
