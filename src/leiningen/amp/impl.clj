@@ -140,6 +140,10 @@
                                         (or (get-in project [:amp-name])
                                             (str (:name project) "-" (:version project) ".amp")))]
 
+    ; Cleanup anything left from a prior build
+    (if (fexists tgt-amp)
+      (fs/delete-dir tgt-amp))
+
     ; ${AMP}/
     (mkdir-p tgt-amp)
     (write-module-properties! tgt-module-properties module-properties)
