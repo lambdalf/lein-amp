@@ -100,7 +100,10 @@
 (defn package-amp!
   [project args]
   (let [project-home           (io/file (:root project))
-        src-amp                (io/file project-home "amp")
+        src-amp-str            (:amp-source-path project)
+        src-amp                (if (nil? src-amp-str)
+                                 (io/file project-home "amp")
+                                 (io/file src-amp-str))
         module-properties-file (io/file src-amp "module.properties")
         _                      (if (not (fexists module-properties-file))
                                  (main/abort (str "Invalid AMP project - " module-properties-file " is missing.")))
