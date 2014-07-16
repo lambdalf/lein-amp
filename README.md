@@ -12,7 +12,7 @@ that capability.
 ## Installation
 
 It is highly recommended that you generate new AMP projects using the
-[`lein new` AMP template](https://github.com/mstang/alfresco-amp-template). Amongst other things, this will automatically add
+[`lein new` AMP template](https://github.com/lambdalf/amp-template). Amongst other things, this will automatically add
 the lein-amp plugin to the new project's dependencies.
 
 ```shell
@@ -32,9 +32,9 @@ The `deploy` task (not yet implemented) will deploy that AMP to an Alfresco inst
 
 ## Developer Information
 
-[GitHub project](https://github.com/pmonks/lein-amp)
+[GitHub project](https://github.com/lambdalf/lein-amp)
 
-[Bug Tracker](https://github.com/pmonks/lein-amp/issues)
+[Bug Tracker](https://github.com/lambdalf/lein-amp/issues)
 
 [![endorse](https://api.coderwall.com/pmonks/endorsecount.png)](https://coderwall.com/pmonks)
 
