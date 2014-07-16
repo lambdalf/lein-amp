@@ -24,7 +24,7 @@
    for details on how to deploy AMP files to an Alfresco installation.
 
    To create an empty project compatible with this plugin, please use
-   the 'amp' lein-new template (see https://github.com/mstang/alfresco-amp-template).
+   the 'amp' lein-new template (see https://github.com/lambdalf/amp-template).
 
    Usage:
 
