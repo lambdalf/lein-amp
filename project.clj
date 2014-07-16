@@ -11,7 +11,7 @@
 
 (defproject lein-amp "0.2.0"
   :description      "Leiningen plugin for generating Alfresco Module Package (AMP) files."
-  :url              "https://github.com/pmonks/lein-amp"
+  :url              "https://github.com/lambdalf/lein-amp"
   :license          {:name "Eclipse Public License"
                      :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :min-lein-version "2.0.0"
