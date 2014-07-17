@@ -10,12 +10,13 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp
-  (:require [clojure.string     :as s]
-            [leiningen.amp.impl :refer [package-amp! deploy-amp!]]))
+  (:require [clojure.string        :as s]
+            [leiningen.amp.package :refer [package-amp!]]
+            [leiningen.amp.install :refer [install-amp!]]))
 
 (def ^:private dispatch-table
   { "package" package-amp!
-    "deploy"  deploy-amp! })
+    "install"  install-amp! })
 
 (defn amp
   "Generate an Alfresco Module Package (AMP) file from your project.
@@ -29,16 +30,21 @@
    Usage:
 
      lein amp package [<options>]
-     lein amp deploy [<options>] [<path-to-alfresco>]
+     lein amp install [<options>] [<path-to-alfresco-war>]
 
    Tasks:
 
      package    Compile and package the AMP file.
-     deploy     Deploy the AMP file to the specified Alfresco installation (NOT YET IMPLEMENTED).
+     install    Install the AMP file into the specified Alfresco WAR file.
 
    Commandline Options:
 
      <none>
+
+   Project Options:
+
+     The 'install' task will optionally read the location of the Alfresco WAR
+     file from a :amp-target-war property in project.clj.
   "
   [project & args]
   (let [^String t (when-let [^String t (first args)]
