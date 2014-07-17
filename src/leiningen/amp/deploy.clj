@@ -33,7 +33,53 @@
                   (assoc m id url)) {} repos)]
     result))
 
-(defn find-dependency
+(defn- depname
+  "Stringifies the filename of a leiningen dependency"
+  [dep]
+  (-> dep first name))
+
+(defn- version
+  "Stringifies the version of a leiningen dependency"
+  [dep]
+  (str "-" (second dep)))
+
+(defn- classifier
+  "Provides an appendable string for the classifier"
+  [dep]
+  (if-let [classifier (:classifier dep)]
+    (str "-" classifier)
+    ""))
+
+(defn- extension
+  "Provides an appenavle string for the extension"
+  [dep]
+  (if-let [ext (:extension dep)]
+    (str "." extension)
+    ".war"))
+
+(defn- dep-to-filename
+  "Translates a dependency in a filename"
+  [dep]
+  (str (depname dep) (version dep) (classifier dep) (extension dep)))
+
+(defn- dep-filter
+  "Creates a function suitable to `filter` a seq of dependencies to find the requested one"
+  [dep]
+  (fn [^java.io.File file]
+    (let [name (.getName file)
+          dep-name (dep-to-filename dep)]
+      (= dep-name name))))
+
+(defn- find-one
+  "Finds one and only one dependency that matches the given file"
+  [file files]
+  (let [filtered (filter (dep-filter file) files)
+        file (first filtered)]
+    (if file
+      file
+      (main/abort "The target WAR couldn't be found in the configured repository"))))
+
+(defn- find-dependency
   "Finds the WAR from the project then returns its file"
   [{:keys [repositories amp-target-war]}]
   (let [files (aether/dependency-files
@@ -41,7 +87,7 @@
                                                 :coordinates  [amp-target-war]))]
     (if (empty? files)
       (main/abort "No target WAR was found. Did you set :amp-target-war in your project.clj?")
-      (first files))))
+      (find-one amp-target-war files))))
 
 (defn- copy-war
   "Copies the WAR file where to install the AMP into a working location"
@@ -54,7 +100,7 @@
 (defn- install!
   "Uses the Alfresco MMT to install the AMP into the target WAR"
   [amp war]
-  (ModuleManagementTool/main (into-array ["install" amp war])))
+  (ModuleManagementTool/main (into-array String ["install" (.toString amp) (.toString war)])))
 
 (defn deploy-amp!
   "Installs the generated AMP into the specified WAR"
