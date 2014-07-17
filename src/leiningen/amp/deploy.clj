@@ -54,7 +54,7 @@
 (defn- install!
   "Uses the Alfresco MMT to install the AMP into the target WAR"
   [amp war]
-  (ModuleManagementTool/main (into-array "install" amp war)))
+  (ModuleManagementTool/main (into-array ["install" amp war])))
 
 (defn deploy-amp!
   "Installs the generated AMP into the specified WAR"
