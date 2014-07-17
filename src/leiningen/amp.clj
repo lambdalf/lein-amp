@@ -35,7 +35,8 @@
    Tasks:
 
      package    Compile and package the AMP file.
-     install    Install the AMP file into the specified Alfresco WAR file.
+     install    Install the AMP file into the specified Alfresco WAR file.  See
+                'Project Options' below for an alternative way to specify this.
 
    Commandline Options:
 

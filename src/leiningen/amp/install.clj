@@ -123,6 +123,7 @@
    specified as an argument, it is retrieved from the project at the
    :amp-target-war"
   [project args]
+  (package/package-amp! project args)
   (let [amp (locate-amp project)
         war (locate-war project args)]
     (install! amp war)))
