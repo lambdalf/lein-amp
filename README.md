@@ -5,7 +5,7 @@ can be deployed to an Alfresco installation using the
 
 What is it useful for?
 
-AMPs are the standard way to deploy extensions to the [open source Alfresco content management system](http://www.alfresco.org/).
+AMPs are the standard way to package extensions to the [open source Alfresco content management system](http://www.alfresco.org/).
 Being able to develop such extensions in Clojure, therefore, requires the ability for leiningen to emit AMP Files - this plugin adds
 that capability.
 
@@ -24,11 +24,11 @@ $ lein deps
 ## Usage:
 ```shell
 $ lein amp package
-$ lein amp deploy [<path-to-alfresco>]   # Not implemented yet!
+$ lein amp install [<path-to-alfresco-war>]
 ```
 
 The `package` task builds an AMP file from your project.
-The `deploy` task (not yet implemented) will deploy that AMP to an Alfresco installation.
+The `install` task will install that AMP into an Alfresco WAR file.
 
 ## Developer Information
 

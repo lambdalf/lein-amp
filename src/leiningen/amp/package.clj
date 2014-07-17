@@ -9,7 +9,7 @@
 ; Contributors:
 ;    Peter Monks - initial implementation
 
-(ns leiningen.amp.impl
+(ns leiningen.amp.package
   (:require [clojure.string      :as s]
             [clojure.java.io     :as io]
             [leiningen.uberjar   :as uj]
@@ -97,6 +97,12 @@
     (spit module-context-file rewritten-content))
   nil)
 
+(defn target-file
+  [project target]
+  (io/file target
+           (or (get-in project [:amp-name])
+               (str (:name project) "-" (:version project) ".amp"))))
+
 (defn package-amp!
   [project args]
   (let [project-home           (io/file (:root project))
@@ -135,9 +141,7 @@
         tgt-web                (io/file tgt-amp             "web")
 
         ; Output AMP file
-        tgt-amp-file           (io/file target
-                                        (or (get-in project [:amp-name])
-                                            (str (:name project) "-" (:version project) ".amp")))]
+        tgt-amp-file           (target-file project target)]
 
     ; Cleanup anything left from a prior build
     (if (fexists tgt-amp)
@@ -182,8 +186,3 @@
     (zip-directory! tgt-amp-file tgt-amp)
 
     (main/info (str "Created AMP " module-id " v" module-version " in " (str tgt-amp-file)))))
-
-
-(defn deploy-amp!
-  [project args]
-  (main/abort "AMP deployment is not yet implemented. Sorry!"))
