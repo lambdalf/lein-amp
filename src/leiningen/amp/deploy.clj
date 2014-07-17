@@ -91,10 +91,10 @@
 
 (defn- copy-war
   "Copies the WAR file where to install the AMP into a working location"
-  [project]
-  (let [temp-war (io/file (:target-path project) "__amp_target.war")]
-    (-> (find-dependency project)
-        (io/copy temp-war))
+  [{:keys [amp-target-war] :as project}]
+  (let [dependency (find-dependency project)
+        temp-war (io/file (:target-path project) (dep-to-filename amp-target-war))]
+    (io/copy dependency temp-war)
     temp-war))
 
 (defn- install!
