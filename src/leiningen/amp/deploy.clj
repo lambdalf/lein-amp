@@ -124,5 +124,5 @@
    :amp-target-war"
   [project args]
   (let [amp (locate-amp project)
-        war (locate-war project) args]
+        war (locate-war project args)]
     (install! amp war)))
