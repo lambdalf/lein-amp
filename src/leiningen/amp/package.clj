@@ -9,7 +9,7 @@
 ; Contributors:
 ;    Peter Monks - initial implementation
 
-(ns leiningen.amp.impl
+(ns leiningen.amp.package
   (:require [clojure.string      :as s]
             [clojure.java.io     :as io]
             [leiningen.uberjar   :as uj]
@@ -179,8 +179,3 @@
     (zip-directory! tgt-amp-file tgt-amp)
 
     (main/info (str "Created AMP " module-id " v" module-version " in " (str tgt-amp-file)))))
-
-
-(defn deploy-amp!
-  [project args]
-  (main/abort "AMP deployment is not yet implemented. Sorry!"))

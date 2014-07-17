@@ -10,8 +10,9 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp
-  (:require [clojure.string     :as s]
-            [leiningen.amp.impl :refer [package-amp! deploy-amp!]]))
+  (:require [clojure.string        :as s]
+            [leiningen.amp.package :refer [package-amp!]]
+            [leiningen.amp.deploy  :refer [deploy-amp!]]))
 
 (def ^:private dispatch-table
   { "package" package-amp!
