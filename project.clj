@@ -9,7 +9,7 @@
 ; Contributors:
 ;    Peter Monks - initial implementation
 
-(defproject lein-amp "0.2.0-SNAPSHOT"
+(defproject lein-amp "0.3.0-SNAPSHOT"
   :description      "Leiningen plugin for generating Alfresco Module Package (AMP) files."
   :url              "https://github.com/pmonks/lein-amp"
   :license          {:name "Eclipse Public License"
