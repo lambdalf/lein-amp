@@ -23,13 +23,22 @@
     amp
     (main/abort "The AMP file was not found. Did you remember to run `lein amp package` first?")))
 
+(defn- repo-map
+  "Builds a Pomegranate compatible map of repositories given the project configured ones.
+   The repositories are found in the project to be a sequence of something like:
+       [<id> {:url \"http://url.to.repo\" ...}]"
+  [repos]
+  (let [result
+        (reduce (fn [m [id {:keys [url]}]]
+                  (assoc m id url)) {} repos)]
+    result))
+
 (defn find-dependency
   "Finds the WAR from the project then returns its file"
   [{:keys [repositories amp-target-war]}]
-  (let [files (->> {:repositories repositories
-                    :coordinates  [amp-target-war]}
-                   (apply aether/resolve-dependencies)
-                   aether/dependency-files)]
+  (let [files (aether/dependency-files
+                   (aether/resolve-dependencies :repositories (repo-map repositories)
+                                                :coordinates  [amp-target-war]))]
     (if (empty? files)
       (main/abort "No target WAR was found. Did you set :amp-target-war in your project.clj?")
       (first files))))
@@ -38,7 +47,7 @@
   "Copies the WAR file where to install the AMP into a working location"
   [project]
   (let [temp-war (io/file (:target-path project) "__amp_target.war")]
-    (-> (find-dependency)
+    (-> (find-dependency project)
         (io/copy temp-war))
     temp-war))
 
