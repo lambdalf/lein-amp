@@ -76,8 +76,7 @@
   * :java-source-paths (Java source files)
   * :resource-paths    (resource source files)"
   [tgt-amp-file project]
-  (let [project-home   (io/file (:root project))
-        src-amp        (get-amp-src        project)
+  (let [src-amp        (get-amp-src        project)
         srcs-clojure   (map io/file (:source-paths      project))
         srcs-java      (map io/file (:java-source-paths project))
         srcs-resources (map io/file (:resource-paths    project))]
