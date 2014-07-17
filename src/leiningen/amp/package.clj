@@ -29,6 +29,15 @@
   [file]
   (.getName ^java.io.File file))
 
+(defn- flast-modified
+  [file]
+  (.lastModified ^java.io.File file))
+
+(defn- dlast-modified
+  "Gets the latest last modified date for all of the files in the given directory."
+  [directory]
+  (apply max (map flast-modified (file-seq directory))))
+
 (defn- mkdir-p
   [directory]
   (io/make-parents (io/file directory ".")))   ; make-parents won't create the last path element of the file passed to it
@@ -49,6 +58,36 @@
                 (io/copy file-stream-in zip-stream-out)))
             (.closeEntry zip-stream-out))))))
   nil)
+
+(defn- get-amp-src
+  "Returns the directory of the AMP source, as a java.io.File."
+  [project]
+  (let [project-home (io/file (:root project))
+        src-amp-str  (:amp-source-path project)]
+    (if (nil? src-amp-str)
+      (io/file project-home "amp")
+      (io/file src-amp-str))))
+
+(defn- amp-is-stale?
+  "Determines whether the generated AMP file is stale. Note: limited to checking the following
+  'well known' source paths:
+  * :amp-source-path   (AMP source files)
+  * :source-paths      (Clojure source files)
+  * :java-source-paths (Java source files)
+  * :resource-paths    (resource source files)"
+  [tgt-amp-file project]
+  (let [project-home   (io/file (:root project))
+        src-amp        (get-amp-src        project)
+        srcs-clojure   (map io/file (:source-paths      project))
+        srcs-java      (map io/file (:java-source-paths project))
+        srcs-resources (map io/file (:resource-paths    project))]
+    (if (not (fexists tgt-amp-file))
+      true
+      (< (flast-modified tgt-amp-file)
+         (apply max (flatten [(dlast-modified src-amp)
+                              (map dlast-modified srcs-clojure)
+                              (map dlast-modified srcs-java)
+                              (map dlast-modified srcs-resources)]))))))
 
 (defn- fix-snapshot-version
   "This method converts SNAPSHOT version numbers into something MMT can support. It does this by
@@ -105,11 +144,7 @@
 
 (defn package-amp!
   [project args]
-  (let [project-home           (io/file (:root project))
-        src-amp-str            (:amp-source-path project)
-        src-amp                (if (nil? src-amp-str)
-                                 (io/file project-home "amp")
-                                 (io/file src-amp-str))
+  (let [src-amp                (get-amp-src project)
         module-properties-file (io/file src-amp "module.properties")
         _                      (if (not (fexists module-properties-file))
                                  (main/abort (str "Invalid AMP project - " module-properties-file " is missing.")))
@@ -123,9 +158,6 @@
         src-licenses           (io/file src-amp "licenses")
         src-module             (io/file src-amp "module")
         src-web                (io/file src-amp "web")
-
-        ; Intermediate build assets
-        uberjar                (io/file (uj/uberjar project))
 
         ; Target paths (where the AMP gets constructs)
         target                 (io/file (:target-path project))
@@ -143,46 +175,57 @@
         ; Output AMP file
         tgt-amp-file           (target-file project target)]
 
-    ; Cleanup anything left from a prior build
-    (if (fexists tgt-amp)
-      (fs/delete-dir tgt-amp))
-
-    ; ${AMP}/
-    (mkdir-p tgt-amp)
-    (write-module-properties! tgt-module-properties module-properties)
-
-    (if (fexists src-file-mapping)
-      (io/copy src-file-mapping tgt-file-mapping))
-
-    ; ${AMP}/config/
-    (if (fexists src-config)
-      (fs/copy-dir src-config tgt-amp))
-
-    ; ${AMP}/lib/
-    (if (fexists uberjar)
+    (if (not (amp-is-stale? tgt-amp-file project))
+      (main/info (str "AMP file " (str tgt-amp-file) " is up to date."))
       (do
-        (mkdir-p tgt-lib)
-        (io/copy uberjar (io/file tgt-lib (fname uberjar)))))
+        (if (fexists tgt-amp-file)
+          (main/info (str "AMP file " (str tgt-amp-file) " is stale - rebuilding."))
+          (main/info (str "AMP file doesn't exist - building.")))
 
-    ; ${AMP}/licenses/
-    (if (fexists src-licenses)
-      (fs/copy-dir src-licenses tgt-amp))
+        ; Cleanup anything left from a prior build
+        (if (fexists tgt-amp)
+          (fs/delete-dir tgt-amp))
 
-    ; ${AMP}/module/ - note: this one is a bit unusual as it gets merged into ${AMP}/config...
-    (if (fexists src-module)
-      (do
-        (mkdir-p tgt-alfresco-module)
-        (fs/copy-dir src-module tgt-alfresco-module)
-        (.renameTo (io/file tgt-alfresco-module (fname src-module)) tgt-module)))
+        (if (fexists tgt-amp-file)
+          (.delete ^java.io.File tgt-amp-file))
 
-    (if (fexists tgt-module-context)
-      (rewrite-module-context! tgt-module-context module-id))
+        ; ${AMP}/
+        (mkdir-p tgt-amp)
+        (write-module-properties! tgt-module-properties module-properties)
 
-    ; ${AMP}/web/
-    (if (fexists src-web)
-      (fs/copy-dir src-web tgt-amp))
+        (if (fexists src-file-mapping)
+          (io/copy src-file-mapping tgt-file-mapping))
 
-    ; Now zip the AMP
-    (zip-directory! tgt-amp-file tgt-amp)
+        ; ${AMP}/config/
+        (if (fexists src-config)
+          (fs/copy-dir src-config tgt-amp))
 
-    (main/info (str "Created AMP " module-id " v" module-version " in " (str tgt-amp-file)))))
+        ; ${AMP}/lib/
+        (let [uberjar (io/file (uj/uberjar project))]
+          (if (fexists uberjar)
+            (do
+              (mkdir-p tgt-lib)
+              (io/copy uberjar (io/file tgt-lib (fname uberjar))))))
+
+        ; ${AMP}/licenses/
+        (if (fexists src-licenses)
+          (fs/copy-dir src-licenses tgt-amp))
+
+        ; ${AMP}/module/ - note: this one is a bit unusual as it gets merged into ${AMP}/config...
+        (if (fexists src-module)
+          (do
+            (mkdir-p tgt-alfresco-module)
+            (fs/copy-dir src-module tgt-alfresco-module)
+            (.renameTo (io/file tgt-alfresco-module (fname src-module)) tgt-module)))
+
+        (if (fexists tgt-module-context)
+          (rewrite-module-context! tgt-module-context module-id))
+
+        ; ${AMP}/web/
+        (if (fexists src-web)
+          (fs/copy-dir src-web tgt-amp))
+
+        ; Now zip the AMP
+        (zip-directory! tgt-amp-file tgt-amp)
+
+        (main/info (str "Built AMP " module-id " v" module-version " in " (str tgt-amp-file)))))))
