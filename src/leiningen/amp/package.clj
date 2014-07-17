@@ -69,7 +69,7 @@
       (io/file src-amp-str))))
 
 (defn- amp-is-stale?
-  "Determines whether the generated AMP file is stale. Note: limited to checking the following
+  "Determines whether the given AMP file is stale. Note: limited to checking the following
   'well known' source paths:
   * :amp-source-path   (AMP source files)
   * :source-paths      (Clojure source files)
