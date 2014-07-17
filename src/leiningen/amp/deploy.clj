@@ -10,8 +10,46 @@
 ;    Peter Monks   - initial implementation
 
 (ns leiningen.amp.deploy
-  (:require [leiningen.core.main :as main]))
+  (:require [clojure.java.io             :as io]
+            [cemerick.pomegranate.aether :as aether]
+            [leiningen.amp.package       :as package]
+            [leiningen.core.main         :as main])
+  (:import [org.alfresco.repo.module.tool ModuleManagementTool]))
+
+(defn- locate-amp
+  "Finds the AMP file produced by the given project"
+  [{:keys [target-path] :as project}]
+  (if-let [amp (package/target-file project (io/file target-path))]
+    amp
+    (main/abort "The AMP file was not found. Did you remember to run `lein amp package` first?")))
+
+(defn find-dependency
+  "Finds the WAR from the project then returns its file"
+  [{:keys [repositories amp-target-war]}]
+  (let [files (->> {:repositories repositories
+                    :coordinates  [amp-target-war]}
+                   (apply aether/resolve-dependencies)
+                   aether/dependency-files)]
+    (if (empty? files)
+      (main/abort "No target WAR was found. Did you set :amp-target-war in your project.clj?")
+      (first files))))
+
+(defn- copy-war
+  "Copies the WAR file where to install the AMP into a working location"
+  [project]
+  (let [temp-war (io/file (:target-path project) "__amp_target.war")]
+    (-> (find-dependency)
+        (io/copy temp-war))
+    temp-war))
+
+(defn- install!
+  "Uses the Alfresco MMT to install the AMP into the target WAR"
+  [amp war]
+  (ModuleManagementTool/main (into-array "install" amp war)))
 
 (defn deploy-amp!
+  "Installs the generated AMP into the specified WAR"
   [project args]
-  (main/abort "AMP deployment is not yet implemented. Sorry!"))
+  (let [amp (locate-amp project)
+        war (copy-war   project)]
+    (install! amp war)))

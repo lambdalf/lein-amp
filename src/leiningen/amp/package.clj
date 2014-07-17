@@ -97,6 +97,12 @@
     (spit module-context-file rewritten-content))
   nil)
 
+(defn target-file
+  [project target]
+  (io/file target
+           (or (get-in project [:amp-name])
+               (str (:name project) "-" (:version project) ".amp"))))
+
 (defn package-amp!
   [project args]
   (let [project-home           (io/file (:root project))
@@ -132,9 +138,7 @@
         tgt-web                (io/file tgt-amp             "web")
 
         ; Output AMP file
-        tgt-amp-file           (io/file target
-                                        (or (get-in project [:amp-name])
-                                            (str (:name project) "-" (:version project) ".amp")))]
+        tgt-amp-file           (target-file project target)]
 
     ; Cleanup anything left from a prior build
     (if (fexists tgt-amp)

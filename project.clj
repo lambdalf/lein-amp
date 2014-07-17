@@ -15,7 +15,11 @@
   :license          {:name "Eclipse Public License"
                      :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :min-lein-version "2.0.0"
+  :repositories [
+                 ["alfresco" "https://artifacts.alfresco.com/nexus/content/groups/public/"]
+                ]
   :dependencies [
                   [me.raynes/fs "1.4.5"]
+                  [org.alfresco/alfresco-mmt "4.2.f"]
                 ]
   :eval-in-leiningen true)
