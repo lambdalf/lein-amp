@@ -89,13 +89,29 @@
       (main/abort "No target WAR was found. Did you set :amp-target-war in your project.clj?")
       (find-one amp-target-war files))))
 
-(defn- copy-war
-  "Copies the WAR file where to install the AMP into a working location"
+(defn- reference-war
+  "Creates and validates a path to a target WAR file"
+  [loc]
+  (let [file (io/file loc)]
+    (if (not (.exists ^java.io.File file))
+      (main/abort "The specified WAR file does not exist")
+      file)))
+
+(defn- dependency-war
+  "Creates and validates a target WAR file specified as a project dependency"
   [{:keys [amp-target-war] :as project}]
   (let [dependency (find-dependency project)
         temp-war (io/file (:target-path project) (dep-to-filename amp-target-war))]
     (io/copy dependency temp-war)
     temp-war))
+
+(defn- locate-war
+  "Locates the WAR file to deploy to. The WAR can be specified as the argument,
+   or as a dependency in the project at the entry :amp-target-war"
+  [{:keys [amp-target-war] :as project} args]
+  (if-let [target-war (first args)]
+    (reference-war target-war)
+    (dependency-war project)))
 
 (defn- install!
   "Uses the Alfresco MMT to install the AMP into the target WAR"
@@ -103,8 +119,10 @@
   (ModuleManagementTool/main (into-array String ["install" (.toString amp) (.toString war)])))
 
 (defn deploy-amp!
-  "Installs the generated AMP into the specified WAR"
+  "Installs the generated AMP into the specified WAR. If the target WAR is not
+   specified as an argument, it is retrieved from the project at the
+   :amp-target-war"
   [project args]
   (let [amp (locate-amp project)
-        war (copy-war   project)]
+        war (locate-war project) args]
     (install! amp war)))
