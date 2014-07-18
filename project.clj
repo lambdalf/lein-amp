@@ -10,7 +10,7 @@
 ;    Peter Monks - initial implementation
 ;    Carlo Sciolla - implemented "install" task
 
-(defproject lein-amp "0.3.0-SNAPSHOT"
+(defproject lein-amp "0.3.0"
   :description       "Leiningen plugin for generating Alfresco Module Package (AMP) files."
   :url               "https://github.com/lambdalf/lein-amp"
   :license           {:name "Eclipse Public License"
