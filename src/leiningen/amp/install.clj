@@ -82,34 +82,53 @@
 (defn- find-dependency
   "Finds the WAR from the project then returns its file"
   [{:keys [repositories amp-target-war]}]
-  (let [files (aether/dependency-files
-                   (aether/resolve-dependencies :repositories (repo-map repositories)
-                                                :coordinates  [amp-target-war]))]
-    (if (empty? files)
-      (main/abort "No target WAR was found. Did you set :amp-target-war in your project.clj?")
-      (find-one amp-target-war files))))
+  (try
+    (let [files (aether/dependency-files
+                 (aether/resolve-dependencies :repositories (repo-map repositories)
+                                              :coordinates  [amp-target-war]))]
+      (if (empty? files)
+        (main/abort "No target WAR was found. Did you set :amp-target-war in your project.clj?")
+        (find-one amp-target-war files)))
+    (catch org.sonatype.aether.transfer.ArtifactNotFoundException e
+      (when main/*debug* (.printStackTrace e))
+      (main/abort "The target WAR specified in your project could not be found in the configured repositories"))
+    (catch Exception e
+      (when main/*debug* (.printStackTrace e))
+      (main/abort "Invalid target WAR found in project:" amp-target-war))))
 
 (defn- reference-war
   "Creates and validates a path to a target WAR file"
   [loc]
   (let [file (io/file loc)]
     (if (not (.exists ^java.io.File file))
-      (main/abort "The specified WAR file does not exist")
+      (main/abort "The specified WAR file does not exist:" loc)
       file)))
 
 (defn- dependency-war
   "Creates and validates a target WAR file specified as a project dependency"
   [{:keys [amp-target-war] :as project}]
+  (if (not amp-target-war)
+    (main/abort "You need to specify a target WAR location"))
   (let [dependency (find-dependency project)
         temp-war (io/file (:target-path project) (dep-to-filename amp-target-war))]
     (io/copy dependency temp-war)
     temp-war))
 
+(defn- get-war-str
+  "Finds the string representation of the target WAR location, if one is given. If
+   the location is specified at the command line it takes precedence over the project
+   configuration."
+  [target-war args]
+  (or (first args)
+      (if (string?  target-war)
+        target-war
+        false)))
+
 (defn- locate-war
   "Locates the WAR file to deploy to. The WAR can be specified as the argument,
    or as a dependency in the project at the entry :amp-target-war"
   [{:keys [amp-target-war] :as project} args]
-  (if-let [target-war (first args)]
+  (if-let [target-war (get-war-str amp-target-war args)]
     (reference-war target-war)
     (dependency-war project)))
 
