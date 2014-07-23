@@ -10,34 +10,33 @@
 ;    Carlo Sciolla - initial implementation
 
 (ns leiningen.amp.run-jetty
-  (:require [leiningen.amp.install :as install])
-  (:import [org.eclipse.jetty.server   Server]
-           [org.eclipse.jetty.webapp   WebAppContext]
-           [org.eclipse.jetty.security HashLoginService]
-           [org.eclipse.jetty.util.security Password]
-           [org.eclipse.jetty.plus.jndi Resource]
-           [org.h2.jdbcx JdbcDataSource]))
+  (:require [leiningen.amp.install :as install]
+            [clojure.string :refer [replace]]
+            [stencil.core :refer [render-file]]
+            [stencil.loader :refer [set-cache]])
+  (:import [org.eclipse.jetty.runner Runner]))
 
-(defn- configure-security
-  "Sets up a login handler which is required by Alfresco to properly start up"
-  [^Server server]
-  (let [login-svc (doto (HashLoginService.) ; TODO make it configurable via project.clj
-                        (.setName   "Repository")
-                        (.setConfig "realm.properties")
-                        (.setRefreshInterval 0)
-                        (.putUser "alfresco" (Password. "alfresco") nil))]
-    (-> server (.addBean login-svc))))
+(defn- temp-jetty-xml
+  "Creates a jetty.xml in a temporary location and returns the file handle"
+  [project] ; TODO: read options from the project!
+  (let [defaults {:jdbc-url    "jdbc:h2:target/h2_data/lambdalf;MVCC=true"
+                  :username    "alfresco"
+                  :password    "alfresco"
+                  :realm-props "realm.properties"
+                  :refresh     0
+                  :users       [{:uid "alfresco"
+                                 :pwd "alfresco"}]}
+        _ (set-cache {}) ; needed as core.cache creates classpath hell
+        jetty-xml (render-file "jetty" defaults)
+        file (java.io.File/createTempFile "jetty" ".xml")]
+    (spit file jetty-xml)
+    file))
 
-(defn- add-h2-datasource
-  "Configures a data source that uses an in-memory H2 database"
-  [server]
-  (let [jndi-name "jdbc/dataSource"
-        ds     (doto (JdbcDataSource.)
-                     (.setURL "jdbc:h2:mem:alfresco?MVCC=true")
-                     (.setUser "alfresco")
-                     (.setPassword "alfresco"))
-        ds-res (doto (Resource. nil jndi-name ds))]
-    (-> server (.setAttribute "datasource" ds-res))))
+(defn- lib
+  "Retrieves a file handle of the requested maven dependency"
+  [dep]
+  (str (System/getProperty "user.home")
+       (replace dep "/" java.io.File/separator)))
 
 (defn run-amp-jetty!
   "Start a Jetty webserver to serve the given handler according to the
@@ -53,12 +52,9 @@
   :max-idle-time  - the maximum idle time in milliseconds for a connection (default 200000)"
   [project args]
   (let [war (install/locate-war project args)
-        wac (doto (WebAppContext.)
-                  (.setContextPath "/")
-                  (.setWar (str war)))
-        server (doto (Server. 8080)
-                     (.setHandler wac)
-                     configure-security
-                     add-h2-datasource
-                     (.start)
-                     (.join))]))
+        xml (temp-jetty-xml project)]
+    (Runner/main (into-array String
+                             ["--lib" (lib "/.m2/repository/com/h2database/h2/1.3.174")
+                              "--lib" (lib "/.m2/repository/tk/skuro/alfresco/h2-support/1.6")
+                              "--config" (str xml)
+                              (str war)]))))
