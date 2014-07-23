@@ -10,13 +10,15 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp
-  (:require [clojure.string        :as s]
-            [leiningen.amp.package :refer [package-amp!]]
-            [leiningen.amp.install :refer [install-amp!]]))
+  (:require [clojure.string          :as s]
+            [leiningen.amp.package   :refer [package-amp!]]
+            [leiningen.amp.install   :refer [install-amp!]]
+            [leiningen.amp.run-jetty :refer [run-amp-jetty!]]))
 
 (def ^:private dispatch-table
   { "package" package-amp!
-    "install"  install-amp! })
+    "install" install-amp!
+    "run"     run-amp-jetty!})
 
 (defn amp
   "Generate an Alfresco Module Package (AMP) file from your project.

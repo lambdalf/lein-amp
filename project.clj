@@ -20,7 +20,10 @@
                        ["alfresco" "https://artifacts.alfresco.com/nexus/content/groups/public/"]
                      ]
   :dependencies      [
-                       [me.raynes/fs "1.4.6"]
-                       [org.alfresco/alfresco-mmt "4.2.f"]
+                       [me.raynes/fs                   "1.4.6"]
+                       [org.alfresco/alfresco-mmt      "4.2.f"]
+                       [tk.skuro.alfresco/h2-support   "1.6"]
+                       [com.h2database/h2              "1.3.174"]
+                       [org.eclipse.jetty/jetty-runner "9.2.1.v20140609"]
                      ]
   :eval-in-leiningen true)

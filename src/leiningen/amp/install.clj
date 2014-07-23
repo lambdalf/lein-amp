@@ -111,7 +111,8 @@
     (main/abort "You need to specify a target WAR location"))
   (let [dependency (find-dependency project)
         temp-war (io/file (:target-path project) (dep-to-filename amp-target-war))]
-    (io/copy dependency temp-war)
+    (if (not (.exists ^java.io.File temp-war))
+      (io/copy dependency temp-war))
     temp-war))
 
 (defn- get-war-str
@@ -124,7 +125,7 @@
         target-war
         false)))
 
-(defn- locate-war
+(defn locate-war
   "Locates the WAR file to deploy to. The WAR can be specified as the argument,
    or as a dependency in the project at the entry :amp-target-war"
   [{:keys [amp-target-war] :as project} args]
