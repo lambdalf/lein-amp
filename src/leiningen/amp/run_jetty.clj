@@ -11,9 +11,9 @@
 
 (ns leiningen.amp.run-jetty
   (:require [leiningen.amp.install :as install]
-            [clojure.string :refer [replace]]
-            [stencil.core :refer [render-file]]
-            [stencil.loader :refer [set-cache]])
+            [clojure.string        :as s]
+            [stencil.core          :refer [render-file]]
+            [stencil.loader        :refer [set-cache]])
   (:import [org.eclipse.jetty.runner Runner]))
 
 (defn- temp-jetty-xml
@@ -36,7 +36,7 @@
   "Retrieves a file handle of the requested maven dependency"
   [dep]
   (str (System/getProperty "user.home")
-       (replace dep "/" java.io.File/separator)))
+       (s/replace dep "/" java.io.File/separator)))
 
 (defn run-amp-jetty!
   "Start a Jetty webserver to serve the given handler according to the
