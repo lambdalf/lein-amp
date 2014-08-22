@@ -10,6 +10,8 @@
 ;    Peter Monks - initial implementation
 ;    Carlo Sciolla - implemented "install" task
 
+(def alfresco-version "5.0.a")
+
 (defproject lein-amp "0.4.0-SNAPSHOT"
   :description       "Leiningen plugin for generating Alfresco Module Package (AMP) files."
   :url               "https://github.com/lambdalf/lein-amp"
@@ -21,9 +23,9 @@
                      ]
   :dependencies      [
                        [me.raynes/fs                   "1.4.6"]
-                       [org.alfresco/alfresco-mmt      "4.2.f"]
+                       [org.alfresco/alfresco-mmt      ~alfresco-version]
                        [tk.skuro.alfresco/h2-support   "1.6"]
                        [com.h2database/h2              "1.3.174"]
-                       [org.eclipse.jetty/jetty-runner "9.2.1.v20140609"]
+                       [org.eclipse.jetty/jetty-runner "9.2.1.v20140609" :exclusions [org.eclipse.jetty/jetty-jsp]]
                      ]
   :eval-in-leiningen true)

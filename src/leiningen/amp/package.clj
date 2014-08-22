@@ -10,11 +10,14 @@
 ;    Peter Monks - initial implementation
 
 (ns leiningen.amp.package
-  (:require [clojure.string      :as s]
-            [clojure.java.io     :as io]
-            [leiningen.uberjar   :as uj]
-            [me.raynes.fs        :as fs]
-            [leiningen.core.main :as main]))
+  (:require [clojure.string           :as s]
+            [clojure.java.io          :as io]
+            [clojure.pprint           :as pprint]
+            [me.raynes.fs             :as fs]
+            [leiningen.core.main      :as main]
+            [leiningen.core.project   :as proj]
+            [leiningen.core.classpath :as classpath]
+            [leiningen.jar            :as jar]))
 
 (defn- map-function-on-map-vals
   "From http://stackoverflow.com/questions/1676891/mapping-a-function-on-the-values-of-a-map-in-clojure"
@@ -135,6 +138,11 @@
     (spit module-context-file rewritten-content))
   nil)
 
+(defn- get-dependency-jars
+  [project]
+  (filter #(.endsWith (.getName ^java.io.File %) ".jar")
+          (classpath/resolve-dependencies :dependencies project)))
+
 (defn target-file
   [project target]
   (io/file target
@@ -143,7 +151,8 @@
 
 (defn package-amp!
   [project args]
-  (let [src-amp                (get-amp-src project)
+  (let [project                (proj/unmerge-profiles project [:provided])
+        src-amp                (get-amp-src project)
         module-properties-file (io/file src-amp "module.properties")
         _                      (if (not (fexists module-properties-file))
                                  (main/abort (str "Invalid AMP project - " module-properties-file " is missing.")))
@@ -200,11 +209,15 @@
           (fs/copy-dir src-config tgt-amp))
 
         ; ${AMP}/lib/
-        (let [uberjar (io/file (uj/uberjar project))]
-          (if (fexists uberjar)
+        (let [dependency-jars (get-dependency-jars project)
+              project-jar     (io/file (get (jar/jar project) [:extension "jar"]))]
+          (if (or (fexists project-jar) (not (empty? dependency-jars)))
             (do
               (mkdir-p tgt-lib)
-              (io/copy uberjar (io/file tgt-lib (fname uberjar))))))
+              (if (fexists project-jar)
+                (io/copy project-jar (io/file tgt-lib (fname project-jar))))
+              (if (not (empty? dependency-jars))
+                (doall (map #(io/copy % (io/file tgt-lib (fname %))) dependency-jars))))))
 
         ; ${AMP}/licenses/
         (if (fexists src-licenses)
