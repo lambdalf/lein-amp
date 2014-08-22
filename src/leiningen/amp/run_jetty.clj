@@ -54,7 +54,7 @@
   (let [war (install/locate-war project args)
         xml (temp-jetty-xml project)]
     (Runner/main (into-array String
-                             ["--lib" (lib "/.m2/repository/com/h2database/h2/1.3.174")
+                             ["--lib" (lib "/.m2/repository/com/h2database/h2/1.4.181")
                               "--lib" (lib "/.m2/repository/tk/skuro/alfresco/h2-support/1.6")
                               "--config" (str xml)
                               (str war)]))))
