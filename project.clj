@@ -25,7 +25,7 @@
                        [me.raynes/fs                   "1.4.6"]
                        [org.alfresco/alfresco-mmt      ~alfresco-version]
                        [tk.skuro.alfresco/h2-support   "1.6"]
-                       [com.h2database/h2              "1.3.174"]
-                       [org.eclipse.jetty/jetty-runner "9.2.1.v20140609" :exclusions [org.eclipse.jetty/jetty-jsp]]
+                       [com.h2database/h2              "1.4.181"]
+                       [org.eclipse.jetty/jetty-runner "9.2.2.v20140723" :exclusions [org.eclipse.jetty/jetty-jsp]]
                      ]
   :eval-in-leiningen true)
