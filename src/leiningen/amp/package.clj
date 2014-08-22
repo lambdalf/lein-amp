@@ -91,6 +91,11 @@
                               (map dlast-modified srcs-java)
                               (map dlast-modified srcs-resources)]))))))
 
+(defn- amp-is-up-to-date?
+  "Inverse of amp-is-stale?"
+  [tgt-amp-file project]
+  (not (amp-is-stale? tgt-amp-file project)))
+
 (defn- fix-snapshot-version
   "This method converts SNAPSHOT version numbers into something MMT can support. It does this by
   decrementing the last non-zero version number element by 1 and appending a 999 version component on
@@ -111,8 +116,12 @@
 (defn- replace-parameters
   [project value]
   (-> value
-      (s/replace "${project.name}"        (str (if (nil? (:group project)) "" (str (:group project) "."))
-                                               (:name project)))
+      (s/replace "${project.name}"        (if (= (:group project) (:name project))
+                                            (:name project)
+                                            (str (if (nil? (:group project))
+                                                   ""
+                                                   (str (:group project) "."))
+                                                 (:name project))))
       (s/replace "${project.title}"       (:title project))
       (s/replace "${project.version}"     (fix-snapshot-version (:version project)))
       (s/replace "${project.description}" (:description project))))
@@ -144,14 +153,16 @@
           (classpath/resolve-dependencies :dependencies project)))
 
 (defn target-file
+  "Returns a java.io.File for the target AMP file. Note: it doesn't necessarily exist."
   [project target]
   (io/file target
            (or (get-in project [:amp-name])
                (str (:name project) "-" (:version project) ".amp"))))
 
 (defn package-amp!
+  "Package the project and its dependencies into an AMP."
   [project args]
-  (let [project                (proj/unmerge-profiles project [:provided])
+  (let [project                (proj/unmerge-profiles project [:base :provided])
         src-amp                (get-amp-src project)
         module-properties-file (io/file src-amp "module.properties")
         _                      (if (not (fexists module-properties-file))
@@ -162,28 +173,20 @@
 
         ; Source paths
         src-file-mapping       (io/file src-amp "file-mapping.properties")
-        src-config             (io/file src-amp "config")
-        src-licenses           (io/file src-amp "licenses")
-        src-module             (io/file src-amp "module")
         src-web                (io/file src-amp "web")
 
-        ; Target paths (where the AMP gets constructs)
+        ; Target paths (where the AMP gets constructed)
         target                 (io/file (:target-path project))
         tgt-amp                (io/file target              "amp")
         tgt-module-properties  (io/file tgt-amp             "module.properties")
         tgt-file-mapping       (io/file tgt-amp             "file-mapping.properties")
-        tgt-config             (io/file tgt-amp             "config")
+
         tgt-lib                (io/file tgt-amp             "lib")
-        tgt-licenses           (io/file tgt-amp             "licenses")
-        tgt-alfresco-module    (io/file tgt-config          "alfresco/module")
-        tgt-module             (io/file tgt-alfresco-module module-id)
-        tgt-module-context     (io/file tgt-module          "module-context.xml")
-        tgt-web                (io/file tgt-amp             "web")
 
         ; Output AMP file
         tgt-amp-file           (target-file project target)]
 
-    (if (not (amp-is-stale? tgt-amp-file project))
+    (if (amp-is-up-to-date? tgt-amp-file project)
       (main/info (str "AMP file " (str tgt-amp-file) " is up to date."))
       (do
         (if (fexists tgt-amp-file)
@@ -197,45 +200,24 @@
         (if (fexists tgt-amp-file)
           (.delete ^java.io.File tgt-amp-file))
 
-        ; ${AMP}/
+        ; module.properties & file-mappings.properties
         (mkdir-p tgt-amp)
         (write-module-properties! tgt-module-properties module-properties)
 
         (if (fexists src-file-mapping)
           (io/copy src-file-mapping tgt-file-mapping))
 
-        ; ${AMP}/config/
-        (if (fexists src-config)
-          (fs/copy-dir src-config tgt-amp))
-
-        ; ${AMP}/lib/
-        (let [dependency-jars (get-dependency-jars project)
-              project-jar     (io/file (get (jar/jar project) [:extension "jar"]))]
-          (if (or (fexists project-jar) (not (empty? dependency-jars)))
+        ; lib
+        (let [project-jar     (io/file (get (jar/jar project) [:extension "jar"]))
+              dependency-jars (get-dependency-jars project)]
+          (if (or (fexists project-jar)
+                  (not (empty? dependency-jars)))
             (do
               (mkdir-p tgt-lib)
               (if (fexists project-jar)
                 (io/copy project-jar (io/file tgt-lib (fname project-jar))))
               (if (not (empty? dependency-jars))
                 (doall (map #(io/copy % (io/file tgt-lib (fname %))) dependency-jars))))))
-
-        ; ${AMP}/licenses/
-        (if (fexists src-licenses)
-          (fs/copy-dir src-licenses tgt-amp))
-
-        ; ${AMP}/module/ - note: this one is a bit unusual as it gets merged into ${AMP}/config...
-        (if (fexists src-module)
-          (do
-            (mkdir-p tgt-alfresco-module)
-            (fs/copy-dir src-module tgt-alfresco-module)
-            (.renameTo (io/file tgt-alfresco-module (fname src-module)) tgt-module)))
-
-        (if (fexists tgt-module-context)
-          (rewrite-module-context! tgt-module-context module-id))
-
-        ; ${AMP}/web/
-        (if (fexists src-web)
-          (fs/copy-dir src-web tgt-amp))
 
         ; Now zip the AMP
         (zip-directory! tgt-amp-file tgt-amp)

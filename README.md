@@ -41,7 +41,7 @@ The following configuration options are read from your `project.clj`:
 ; specify the location to the Alfresco WAR file
 :amp-target-war "path/to/alfresco.war"
 ; or a dependency to the WAR (remember to configure the proper Maven repository)
-:amp-target-war [org.alfresco/alfresco "4.2.f" :extension "war"]
+:amp-target-war [org.alfresco/alfresco "5.0.a" :extension "war"]
 ```
 
 ## Developer Information
