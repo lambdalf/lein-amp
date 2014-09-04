@@ -176,11 +176,11 @@
 
         ; Target paths (where the AMP gets constructed)
         target                 (io/file (:target-path project))
-        tgt-amp                (io/file target              "amp")
-        tgt-module-properties  (io/file tgt-amp             "module.properties")
-        tgt-file-mapping       (io/file tgt-amp             "file-mapping.properties")
+        tgt-amp                (io/file target  "amp")
+        tgt-module-properties  (io/file tgt-amp "module.properties")
+        tgt-file-mapping       (io/file tgt-amp "file-mapping.properties")
 
-        tgt-lib                (io/file tgt-amp             "lib")
+        tgt-lib                (io/file tgt-amp "lib")
 
         ; Output AMP file
         tgt-amp-file           (target-file project target)]
