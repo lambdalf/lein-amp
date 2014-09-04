@@ -173,7 +173,6 @@
 
         ; Source paths
         src-file-mapping       (io/file src-amp "file-mapping.properties")
-        src-web                (io/file src-amp "web")
 
         ; Target paths (where the AMP gets constructed)
         target                 (io/file (:target-path project))
