@@ -149,8 +149,9 @@
 
 (defn- get-dependency-jars
   [project]
-  (filter #(.endsWith (.getName ^java.io.File %) ".jar")
-          (classpath/resolve-dependencies :dependencies project)))
+  (let [clean-project (proj/unmerge-profiles project [:base :provided])]
+    (filter #(.endsWith (.getName ^java.io.File %) ".jar")
+            (classpath/resolve-dependencies :dependencies clean-project))))
 
 (defn target-file
   "Returns a java.io.File for the target AMP file. Note: it doesn't necessarily exist."
@@ -162,8 +163,7 @@
 (defn package-amp!
   "Package the project and its dependencies into an AMP."
   [project args]
-  (let [project                (proj/unmerge-profiles project [:base :provided])
-        src-amp                (get-amp-src project)
+  (let [src-amp                (get-amp-src project)
         module-properties-file (io/file src-amp "module.properties")
         _                      (if (not (fexists module-properties-file))
                                  (main/abort (str "Invalid AMP project - " module-properties-file " is missing.")))
