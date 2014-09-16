@@ -12,7 +12,7 @@
 
 (def alfresco-version "4.2.f")
 
-(defproject lein-amp "0.6.0"
+(defproject lein-amp "0.7.0-SNAPSHOT"
   :description       "Leiningen plugin for generating Alfresco Module Package (AMP) files."
   :url               "https://github.com/lambdalf/lein-amp"
   :license           {:name "Eclipse Public License"
