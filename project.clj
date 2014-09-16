@@ -10,7 +10,7 @@
 ;    Peter Monks - initial implementation
 ;    Carlo Sciolla - implemented "install" task
 
-(def alfresco-version "5.0.a")
+(def alfresco-version "4.2.f")
 
 (defproject lein-amp "0.5.0"
   :description       "Leiningen plugin for generating Alfresco Module Package (AMP) files."
