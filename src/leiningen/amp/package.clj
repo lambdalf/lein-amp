@@ -199,13 +199,6 @@
         (if (fexists tgt-amp-file)
           (.delete ^java.io.File tgt-amp-file))
 
-        ; module.properties & file-mappings.properties
-        (mkdir-p tgt-amp)
-        (write-module-properties! tgt-module-properties module-properties)
-
-        (if (fexists src-file-mapping)
-          (io/copy src-file-mapping tgt-file-mapping))
-
         ; lib
         (let [project-jar     (io/file (get (jar/jar project) [:extension "jar"]))
               dependency-jars (get-dependency-jars project)]
@@ -217,6 +210,13 @@
                 (io/copy project-jar (io/file tgt-lib (fname project-jar))))
               (if (not (empty? dependency-jars))
                 (doall (map #(io/copy % (io/file tgt-lib (fname %))) dependency-jars))))))
+
+        ; module.properties & file-mappings.properties
+        (mkdir-p tgt-amp)   ; Don't remove this - (jar/jar) cleans the project!
+        (write-module-properties! tgt-module-properties module-properties)
+
+        (if (fexists src-file-mapping)
+          (io/copy src-file-mapping tgt-file-mapping))
 
         ; Now zip the AMP
         (zip-directory! tgt-amp-file tgt-amp)
