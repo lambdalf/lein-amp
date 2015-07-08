@@ -52,6 +52,8 @@ The following configuration options are read from your `project.clj`:
 
 [![endorse](https://api.coderwall.com/pmonks/endorsecount.png)](https://coderwall.com/pmonks)
 
+[![Dependencies Status](http://jarkeeper.com/lambdalf/lein-amp/status.svg)](http://jarkeeper.com/lambdalf/lein-amp)
+
 ## License
 
 Copyright © 2014 Peter Monks (pmonks@gmail.com)
